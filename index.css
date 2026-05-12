@@ -1,0 +1,45 @@
+p,h1,h2,h3,h4,h5,h6,div,span,a {
+  font-family: "Cossette Texte", sans-serif;
+}
+@keyframes rainbow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+.topthing {
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 400% 400%;
+  padding: 2px;
+  text-align: center;
+  align-self: center;
+  border-radius: 10px;
+  width: auto;
+  margin: 10px;
+  animation: rainbow 12s ease infinite;
+}
+
+html {
+    background-color: #e5e5f7;
+    text-align: center;
+    opacity: 1;
+    background: radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent) 30px 30px, linear-gradient(#8b6d43 2.4000000000000004px, transparent 2.4000000000000004px) 0 -1.2000000000000002px, linear-gradient(90deg, #000000 2.4000000000000004px, #e5e5f7 2.4000000000000004px) -1.2000000000000002px 0;
+    background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px;
+
+}
+
+.content {
+    text-align: center;
+    background-color: transparent;
+    width: auto;
+    padding: 10px;
+    display: inline-block;
+}
+
+.something {
+    background-color: #e5e5f7;
+    padding: 2px;
+    display: inline-block;
+}
