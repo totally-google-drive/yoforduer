@@ -43,3 +43,14 @@ html {
     padding: 2px;
     display: inline-block;
 }
+
+.ip {
+    background-color: #e5e5f7;
+    padding: 2px;
+    display: inline-block;
+    font-size: 30px;
+    border-color: transparent;
+    border-width: 0px;
+    border-radius: 10px;
+    cursor: pointer;
+}
