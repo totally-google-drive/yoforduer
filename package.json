@@ -1,0 +1,15 @@
+{
+  "name": "yoforduer-website",
+  "version": "1.0.0",
+  "description": "yoforduer.org website with Discord photo gallery",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2"
+  }
+}
