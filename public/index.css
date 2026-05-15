@@ -27,7 +27,6 @@ html {
     opacity: 1;
     background: radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent) 30px 30px, linear-gradient(#8b6d43 2.4000000000000004px, transparent 2.4000000000000004px) 0 -1.2000000000000002px, linear-gradient(90deg, #000000 2.4000000000000004px, #e5e5f7 2.4000000000000004px) -1.2000000000000002px 0;
     background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px;
-
 }
 
 .content {
@@ -44,13 +43,140 @@ html {
     display: inline-block;
 }
 
-.ip {
-    background-color: #e5e5f7;
-    padding: 2px;
-    display: inline-block;
-    font-size: 30px;
-    border-color: transparent;
-    border-width: 0px;
-    border-radius: 10px;
+.mc-server-panel {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 20px auto;
+    max-width: 450px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+}
+
+.mc-server-panel-inner {
+    background: url("dirt.webp") repeat;
+    background-size: 140px 140px;
+    border: 4px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.mc-server-content {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #1a1a1a;
+    border: 2px solid #3c3c3c;
+    border-radius: 3px;
+    padding: 10px;
+    position: relative;
+}
+
+.mc-favicon {
+    width: 64px;
+    height: 64px;
+    border: 2px solid #3c3c3c;
+    border-radius: 2px;
+    background: #0c0c0c;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+}
+
+.mc-server-info {
+    flex: 1;
+    min-width: 0;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    line-height: 1.4;
+}
+
+.mc-server-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.mc-server-name {
+    color: #00aa00;
+    font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
+    text-shadow: 2px 2px 0 #003300;
+    font-family: 'VT323', monospace;
+}
+
+.mc-server-name:hover {
+    text-decoration: underline;
+}
+
+.mc-player-count {
+    position: relative;
+}
+
+.mc-players-online {
+    color: #ffffff;
+    font-size: 16px;
+    background: #252525;
+    border: 1px solid #3c3c3c;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-family: 'VT323', monospace;
+}
+
+.mc-player-tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #1a1a1a;
+    border: 2px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 8px;
+    min-width: 150px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 100;
+    margin-top: 4px;
+}
+
+.mc-player-count:hover .mc-player-tooltip {
+    display: block;
+}
+
+.mc-tooltip-header {
+    color: #aaaaaa;
+    font-size: 14px;
+    border-bottom: 1px solid #3c3c3c;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    font-family: 'VT323', monospace;
+}
+
+.mc-tooltip-list {
+    font-size: 14px;
+    font-family: 'VT323', monospace;
+}
+
+.mc-tooltip-player {
+    color: #ffffff;
+    padding: 2px 0;
+    font-family: 'VT323', monospace;
+}
+
+.mc-tooltip-empty {
+    color: #555555;
+    font-size: 14px;
+    font-style: italic;
+    font-family: 'VT323', monospace;
+}
+
+.mc-motd {
+    color: #aaaaaa;
+    font-size: 16px;
+    margin-top: 8px;
+    margin-left: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'VT323', monospace;
 }

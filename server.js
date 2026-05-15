@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { Client, GatewayIntentBits, ChannelType, REST, Routes } = require('discord.js');
 const path = require('path');
+const util = require('minecraft-server-util');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,7 +19,9 @@ const client = new Client({
 const CONFIG = {
   guildId: process.env.DISCORD_GUILD_ID,
   channelId: process.env.DISCORD_CHANNEL_ID,
-  scanIntervalMs: 60000 // 1 minu
+  scanIntervalMs: 60000, // 1 minute
+  mcServer: process.env.MC_SERVER || 'yoforduer.org',
+  mcPort: parseInt(process.env.MC_PORT) || 25565
 };
 
 // Store cached photos
@@ -37,6 +40,34 @@ app.get('/gallery', (req, res) => {
 
 app.get('/api/photos', async (req, res) => {
   res.json(cachedPhotos);
+});
+
+app.get('/api/mc-status', async (req, res) => {
+  try {
+    const result = await util.status(CONFIG.mcServer, CONFIG.mcPort, { timeout: 5000 });
+    console.log('[MC] Response:', JSON.stringify(result, null, 2));
+    res.json({
+      online: true,
+      version: result.version.name,
+      players: result.players.online,
+      maxPlayers: result.players.max,
+      ping: result.roundTripLatency || 0,
+      motd: result.motd?.clean || 'A Minecraft Server',
+      favicon: result.favicon || null,
+      samplePlayers: result.players.sample || []
+    });
+  } catch (error) {
+    console.log('[MC] Error:', error.message);
+    res.json({
+      online: false,
+      players: 0,
+      maxPlayers: 0,
+      ping: 0,
+      version: null,
+      motd: null,
+      samplePlayers: []
+    });
+  }
 });
 
 

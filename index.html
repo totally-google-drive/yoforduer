@@ -4,26 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>yoforduer</title>
-    <script src="js.js?v=2"></script>
-    <!--CSS & Fonts-->
-    <link rel="stylesheet" href="index.css?v=2">
+    <script src="js.js?v=7"></script>
+    <link rel="stylesheet" href="index.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cossette+Texte:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="topthing"><h2 style="font-weight: normal;">Welcome to <strong>yoforduer.org</strong>!</h2></div>
-<div class="content">
-    <p class="something">Check out our <a href="/gallery">community photos</a> from Discord!</p>
-    <br>
-    <p class="something">Try the minecraft server for some fun! (whitelist only)</p>
-    <br>
-    <button class="ip" onclick="copyLink()" id="link">yoforduer.org</button>
-    <br>
-    <br> <!--i love being inefficient-->
-    <br>
-    <br>
-    <p class="something">the rest of the website is still under construction...</p>
-</div>
+
+    <div class="content">
+        <p class="something">Check out our <a href="/gallery">community photos</a> from Discord!</p>
+
+        <div class="mc-server-panel" id="mc-panel">
+            <div class="mc-server-panel-inner">
+                <div class="mc-server-content">
+                    <img class="mc-favicon" id="mc-favicon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%237B5B5B' width='64' height='64'/%3E%3Crect fill='%238C6B6B' x='8' y='8' width='48' height='48'/%3E%3C/svg%3E" alt="">
+
+                    <div class="mc-server-info">
+                        <div class="mc-server-header-row">
+                            <span class="mc-server-name" onclick="copyLink()" title="Click to copy IP">yoforduer.org</span>
+                            <div class="mc-player-count" id="mc-player-count">
+                                <span class="mc-players-online" id="mc-players">-</span>
+                                <div class="mc-player-tooltip" id="mc-player-tooltip">
+                                    <div class="mc-tooltip-header">Players Online</div>
+                                    <div class="mc-tooltip-list" id="player-tooltip-list">
+                                        <div class="mc-tooltip-empty">No players online</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mc-motd" id="mc-motd">A Minecraft Server</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="something">the rest of the website is still under construction...</p>
+    </div>
 </body>
 </html>
