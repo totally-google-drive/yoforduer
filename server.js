@@ -166,7 +166,7 @@ app.get('/gallery', (req, res) => {
 });
 
 app.get('/guestbook', (req, res) => {
-  res.send("<p>What are you doing here? its not done yet. :(</p>");
+  res.sendFile(path.join(__dirname, 'guestbook.html'));
 });
 
 
@@ -224,16 +224,62 @@ app.post('/api/guestbook', (req, res) => {
 
     const { name, message } = req.body;
 
-    if (!name || !message || name.length > 50 || message.length > 500) {
+    // Enhanced input validation
+    if (!name || !message || typeof name !== 'string' || typeof message !== 'string') {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    const trimmedName = name.trim();
+    const trimmedMessage = message.trim();
+
+    // Strict length limits with trimming
+    if (trimmedName.length === 0 || trimmedName.length > 50 || trimmedMessage.length === 0 || trimmedMessage.length > 500) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    // Block common XSS/HTML injection patterns
+    const dangerousPatterns = [
+      /<script/i,
+      /javascript:/i,
+      /on\w+\s*=/i,
+      /data:/i,
+      /vbscript:/i,
+      /expression\s*\(/i,
+      /<\s*iframe/i,
+      /<\s*object/i,
+      /<\s*embed/i,
+      /<\s*link/i,
+      /<\s*style/i,
+      /\$\{/,
+      /\$\(/,
+      /\{user\.|\{client\./
+    ];
+
+    for (const pattern of dangerousPatterns) {
+      if (pattern.test(trimmedName) || pattern.test(trimmedMessage)) {
+        console.log('[Guestbook] Blocked suspicious input:', pattern);
+        return res.status(400).json({ error: 'Invalid input' });
+      }
+    }
+
+    // Block URLs in messages (prevent link spam)
+    const urlPattern = /https?:\/\/[^\s]+/i;
+    if (urlPattern.test(trimmedMessage)) {
+      return res.status(400).json({ error: 'No URLs allowed' });
+    }
+
+    // Block excessive whitespace/blocking characters
+    if (/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(trimmedName) || /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(trimmedMessage)) {
       return res.status(400).json({ error: 'Invalid input' });
     }
 
     const messages = JSON.parse(fs.readFileSync(GUESTBOOK_FILE, 'utf8'));
 
+    // Generate a more secure unique ID
     const newEntry = {
-      id: Date.now().toString(),
-      name: escapeHtml(name.trim()),
-      message: escapeHtml(message.trim()),
+      id: Buffer.from(Date.now().toString() + Math.random().toString(36)).toString('base64'),
+      name: escapeHtml(trimmedName).slice(0, 50),
+      message: escapeHtml(trimmedMessage).slice(0, 500),
       timestamp: new Date().toISOString()
     };
 
@@ -248,13 +294,19 @@ app.post('/api/guestbook', (req, res) => {
 });
 
 // Visits API
+app.post('/api/visits', (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+  const result = trackVisit(clientIp);
+  res.json({ counted: result.counted, count: result.count });
+});
+
 app.get('/api/visits', (req, res) => {
-  try {
-    const data = JSON.parse(fs.readFileSync(VISITS_FILE, 'utf8'));
-    res.json({ count: data.count });
-  } catch (error) {
-    res.json({ count: 0 });
+  // Return total count from all tracked IPs
+  let totalCount = 0;
+  for (const entry of visitsMap.values()) {
+    totalCount += entry.count;
   }
+  res.json({ count: totalCount });
 });
 
 
