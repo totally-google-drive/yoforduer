@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guestbook - yoforduer</title>
+    <script src="js.js?v=11"></script>
+    <script>
+        fetch('/api/random-emoji').then(r => r.json()).then(d => {
+            if (d.emoji) document.getElementById('favicon-link').href = d.emoji;
+        });
+    </script>
+    <link rel="stylesheet" href="index.css?v=16">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-link">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cosette+Texte:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-wrapper">
+        <!-- Left Side Column -->
+        <aside class="side-column left">
+                <div class="hit-counter">
+                    <span class="hit-counter-label">MESSAGES</span>
+                    <span id="msg-count">000000</span>
+                </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Wavy Rainbow Banner -->
+            <div class="topthing">
+                <h2><span id="typing-text">Guestbook</span><span class="cursor">|</span></h2>
+            </div>
+
+            <!-- Scrolling Marquee -->
+            <div class="marquee-container">
+            <span class="marquee-text">*** WELCOME TO YOFORDUER.ORG *** CHECK OUT THE PHOTOS *** SIGN THE GUESTBOOK *** JOIN THE MINECRAFT SERVER *** CASHAPP ME $50 ***</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="nav-bar">
+                <a href="/">Home</a>
+                <a href="/gallery">Photos</a>
+                <a href="/guestbook">Guestbook</a>
+            </nav>
+
+            <!-- Retro Stickers -->
+            <div class="retro-stickers">
+                <span class="sticker sticker-star">PARTIALLY UNDER CONSTRUCTION</span>
+                <span class="sticker sticker-cool">LEAVE A MESSAGE!</span>
+            </div>
+
+            <div class="content">
+                <!-- Guestbook Section -->
+                <div class="guestbook-section" id="guestbook">
+                    <h3 class="guestbook-title">Sign the Guestbook!</h3>
+                    <form class="guestbook-form" id="guestbook-form">
+                        <input type="text" id="guest-name" placeholder="Name" required maxlength="50">
+                        <textarea id="guest-message" placeholder="Message" required maxlength="500"></textarea>
+                        <button type="submit" class="btn">Post!</button>
+                    </form>
+
+                    <div class="guestbook-messages" id="guestbook-messages">
+                        <p class="loading">Loading messages...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Side Column -->
+        <aside class="side-column right">
+            <div>
+              <span class="sticker sticker-music">MESSAGE</span>&nbsp;
+            <span class="sticker sticker-rock">COOL I GUESS</span>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <div class="site-footer">
+        <p id="footer-text">Enable JavaScript! ~ yoforduer.org ~ Est. 2026</p>
+    </div>
+
+    <script>
+        // Random footer messages
+        const footerMessages = [
+            "Holy vibecoded... ~ yoforduer.org ~ Est. 2026",
+            "#____LOUIE ~ yoforduer.org ~ Est. 2024",
+            "Um... something aint right! ~ yoforduer.org ~ Est. 2026",
+            "If one man could hold you down... ~ yoforduer.org ~ Est. 2026",
+            "let me get two sweet teas ~ yoforduer.org ~ Est. 2026",
+            "gulp ~ yoforduer.org ~ Est. 2026",
+            "hello! ~ yoforduer.org ~ Est. 2026",
+            "oh yeah ~ yoforduer.org ~ Est. 2026",
+            "55 burger 55 pies... ~ yoforduer.org ~ Est. 2026",
+        ];
+        document.getElementById('footer-text').textContent = footerMessages[Math.floor(Math.random() * footerMessages.length)];
+
+        // Fetch and display visits counter
+        async function fetchVisits() {
+            const hitCount = document.getElementById('hit-count');
+            if (!hitCount) return;
+            try {
+                await fetch('/api/visits', { method: 'POST' });
+                const response = await fetch('/api/visits');
+                const data = await response.json();
+                hitCount.textContent = String(data.count).padStart(6, '0');
+            } catch (error) {
+                hitCount.textContent = '000001';
+            }
+        }
+        fetchVisits();
+
+        // Guestbook functionality
+        async function loadGuestbook() {
+            const messagesDiv = document.getElementById('guestbook-messages');
+            if (!messagesDiv) return;
+
+            try {
+                const response = await fetch('/api/guestbook');
+                const messages = await response.json();
+
+                messagesDiv.innerHTML = '';
+
+                if (messages.length === 0) {
+                    const p = document.createElement('p');
+                    p.className = 'no-messages';
+                    p.textContent = 'No messages yet! Be the first!';
+                    messagesDiv.appendChild(p);
+                    return;
+                }
+
+                // Show all messages on guestbook page
+                messages.forEach(function(msg) {
+                    const entry = document.createElement('div');
+                    entry.className = 'guestbook-entry';
+
+                    const header = document.createElement('div');
+                    header.className = 'guestbook-header';
+
+                    const name = document.createElement('span');
+                    name.className = 'guestbook-name';
+                    name.textContent = msg.name;
+
+                    const date = document.createElement('span');
+                    date.className = 'guestbook-date';
+                    date.textContent = formatDate(msg.timestamp);
+
+                    header.appendChild(name);
+                    header.appendChild(date);
+
+                    const body = document.createElement('div');
+                    body.className = 'guestbook-body';
+                    body.textContent = msg.message;
+
+                    entry.appendChild(header);
+                    entry.appendChild(body);
+                    messagesDiv.appendChild(entry);
+                });
+            } catch (error) {
+                messagesDiv.innerHTML = '';
+                const p = document.createElement('p');
+                p.className = 'error';
+                p.textContent = 'Error loading guestbook!';
+                messagesDiv.appendChild(p);
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // Handle guestbook form submission
+        const guestbookForm = document.getElementById('guestbook-form');
+        if (guestbookForm) {
+            guestbookForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('guest-name');
+                const messageInput = document.getElementById('guest-message');
+                const button = guestbookForm.querySelector('button');
+
+                const originalText = button.textContent;
+                button.textContent = 'Sending...';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/guestbook', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: nameInput.value,
+                            message: messageInput.value
+                        })
+                    });
+
+                    if (response.ok) {
+                        nameInput.value = '';
+                        messageInput.value = '';
+                        loadGuestbook();
+                    } else {
+                        alert('Error sending message!');
+                    }
+                } catch (error) {
+                    alert('Error sending message!');
+                }
+
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+
+        loadGuestbook();
+
+        // Minecraft Server Status
+        async function loadMCStatus() {
+            const mcPlayers = document.getElementById('mc-players');
+            const mcPlayerCount = document.getElementById('mc-player-count');
+            const mcMotd = document.getElementById('mc-motd');
+            const mcFavicon = document.getElementById('mc-favicon');
+
+            if (!mcPlayers) return;
+
+            try {
+                const response = await fetch('/api/mc-status');
+                const data = await response.json();
+
+                if (data.online) {
+                    mcPlayers.textContent = data.players + '/' + data.maxPlayers;
+
+                    // Add hover tooltip with player names
+                    if (data.samplePlayers && data.samplePlayers.length > 0) {
+                        const playerNames = data.samplePlayers.map(p => p.name).join(', ');
+                        mcPlayerCount.title = 'Online: ' + playerNames;
+                    } else if (data.players > 0) {
+                        mcPlayerCount.title = data.players + ' player(s) online';
+                    } else {
+                        mcPlayerCount.title = 'No players online';
+                    }
+
+                    if (data.motd) {
+                        mcMotd.textContent = data.motd;
+                    }
+
+                    if (data.favicon) {
+                        mcFavicon.src = data.favicon;
+                    }
+                } else {
+                    mcPlayers.textContent = '0';
+                    mcPlayerCount.title = 'Server offline';
+                }
+            } catch (error) {
+                mcPlayers.textContent = '?';
+                mcPlayerCount.title = 'Could not connect';
+            }
+        }
+
+        loadMCStatus();
+        setInterval(loadMCStatus, 30000); // Update every 30 seconds
+    </script>
+</body>
+</html>
