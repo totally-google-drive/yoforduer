@@ -111,6 +111,23 @@
         }
         fetchVisits();
 
+        async function fetchMsgCount() {
+            const msgCount = document.getElementById('msg-count');
+            if (!msgCount) return;
+            console.log('Fetching message count...');
+            try {
+                console.log('trying...');
+                const response = await fetch('/api/messages', { method: 'GET' });
+                const messages = await response.json();
+                msgCount.textContent = String(messages.count).padStart(6, '0');
+                console.log('loaded. if its wrong, idk bruh.')
+            } catch (error) {
+                console.log('error fetching message count:', error);
+                msgCount.textContent = '0000404';
+            }
+        }
+        fetchMsgCount();
+
         // Guestbook functionality
         async function loadGuestbook() {
             const messagesDiv = document.getElementById('guestbook-messages');

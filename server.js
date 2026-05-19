@@ -300,6 +300,16 @@ app.post('/api/visits', (req, res) => {
   res.json({ counted: result.counted, count: result.count });
 });
 
+app.get('/api/messages', (req, res) => {
+  try {
+    const messages = JSON.parse(fs.readFileSync(GUESTBOOK_FILE, 'utf8'));
+    res.json({ count: Array.isArray(messages) ? messages.length : 0 });
+  } catch (error) {
+    console.log('[Messages] Error reading guestbook:', error.message);
+    res.status(500).json({ error: 'Could not read guestbook' });
+  }
+});
+
 app.get('/api/visits', (req, res) => {
   // Return total count from all tracked IPs
   let totalCount = 0;
