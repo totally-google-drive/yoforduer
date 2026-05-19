@@ -131,6 +131,23 @@ let cachedPhotos = [];
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Random emoji favicon API
+const EMOJIS_DIR = path.join(__dirname, 'public', 'emojis');
+
+app.get('/api/random-emoji', (req, res) => {
+  try {
+    const files = fs.readdirSync(EMOJIS_DIR).filter(f => f.endsWith('.svg'));
+    if (files.length === 0) {
+      return res.status(404).json({ error: 'No emojis found' });
+    }
+    const randomFile = files[Math.floor(Math.random() * files.length)];
+    res.json({ emoji: `/emojis/${randomFile}` });
+  } catch (error) {
+    console.log('[Emoji] Error:', error.message);
+    res.status(500).json({ error: 'Could not get emoji' });
+  }
+});
+
 // Middleware to track visits
 app.use((req, res, next) => {
   if (req.path === '/' || req.path === '/gallery') {
