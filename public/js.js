@@ -1,3 +1,14 @@
+// Escape HTML entities to prevent XSS
+function escapeHtml(str) {
+    if (typeof str !== 'string') return str;
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function copyLink() {
     var dummy = document.createElement('input'),
     text = "yoforduer.org";
@@ -43,7 +54,7 @@ async function fetchMCStatus() {
             if (playerTooltipList) {
                 if (data.samplePlayers && data.samplePlayers.length > 0) {
                     playerTooltipList.innerHTML = data.samplePlayers.map(function(p) {
-                        return '<div class="mc-tooltip-player">' + (p.name || 'Unknown') + '</div>';
+                        return '<div class="mc-tooltip-player">' + escapeHtml(p.name || 'Unknown') + '</div>';
                     }).join('');
                 } else {
                     playerTooltipList.innerHTML = '<div class="mc-tooltip-empty">No players online</div>';
@@ -65,5 +76,22 @@ async function fetchMCStatus() {
     }
 }
 
-fetchMCStatus();
-setInterval(fetchMCStatus, 30000);
+// Update current date
+function updateDate() {
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+}
+
+// Wait for DOM to load before running initialization functions
+document.addEventListener('DOMContentLoaded', function() {
+    updateDate();
+    fetchMCStatus();
+    setInterval(fetchMCStatus, 30000);
+});

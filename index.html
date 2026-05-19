@@ -4,44 +4,292 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>yoforduer</title>
-    <script src="js.js?v=7"></script>
-    <link rel="stylesheet" href="index.css?v=10">
+    <script src="js.js?v=11"></script>
+    <link rel="stylesheet" href="index.css?v=12">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cossette+Texte:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cosette+Texte:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="topthing"><h2 style="font-weight: normal;">Welcome to <strong>yoforduer.org</strong>!</h2></div>
+    <div class="main-wrapper">
+        <!-- Left Side Column -->
+        <aside class="side-column left">
+                <div class="hit-counter">
+                    <span class="hit-counter-label">VISITS</span>
+                    <span id="hit-count">000000</span>
+                </div>
+        </aside>
 
-    <div class="content">
-        <p class="something">Check out our <a href="/gallery">awesome photos</a> from Discord!</p>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Wavy Rainbow Banner -->
+            <div class="topthing">
+                <h2><span id="typing-text"></span><span class="cursor">|</span></h2>
+            </div>
 
-        <div class="mc-server-panel" id="mc-panel">
-            <div class="mc-server-panel-inner">
-                <div class="mc-server-content">
-                    <img class="mc-favicon" id="mc-favicon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%237B5B5B' width='64' height='64'/%3E%3Crect fill='%238C6B6B' x='8' y='8' width='48' height='48'/%3E%3C/svg%3E" alt="">
+            <!-- Scrolling Marquee -->
+            <div class="marquee-container">
+            <span class="marquee-text">*** WELCOME TO YOFORDUER.ORG *** CHECK OUT THE PHOTOS *** SIGN THE GUESTBOOK *** JOIN THE MINECRAFT SERVER *** CASHAPP ME $50 ***</span>
+            </div>
 
-                    <div class="mc-server-info">
-                        <div class="mc-server-header-row">
-                            <span class="mc-server-name" onclick="copyLink()" title="Click to copy IP">yoforduer.org</span>
-                            <div class="mc-player-count" id="mc-player-count">
-                                <span class="mc-players-online" id="mc-players">-</span>
-                                <div class="mc-player-tooltip" id="mc-player-tooltip">
-                                    <div class="mc-tooltip-header">Players Online</div>
-                                    <div class="mc-tooltip-list" id="player-tooltip-list">
-                                        <div class="mc-tooltip-empty">No players online</div>
+            <!-- Navigation -->
+            <nav class="nav-bar">
+                <a href="/">Home</a>
+                <a href="/gallery">Photos</a>
+                <a href="/guestbook">Guestbook</a>
+            </nav>
+
+            <!-- Retro Stickers -->
+            <div class="retro-stickers">
+                <span class="sticker sticker-star">NEW!</span>
+                <span class="sticker sticker-cool">BEST PAGE</span>
+            </div>
+
+            <div class="content">
+
+                <div class="mc-server-panel" id="mc-panel">
+                    <div class="mc-server-panel-inner">
+                        <div class="mc-server-content">
+                            <img class="mc-favicon" id="mc-favicon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%237B5B5B' width='64' height='64'/%3E%3Crect fill='%238C6B6B' x='8' y='8' width='48' height='48'/%3E%3C/svg%3E" alt="">
+
+                            <div class="mc-server-info">
+                                <div class="mc-server-header-row">
+                                    <span class="mc-server-name" onclick="copyLink()" title="Click to copy IP">yoforduer.org</span>
+                                    <div class="mc-player-count" id="mc-player-count">
+                                        <span id="mc-players">-</span>
                                     </div>
                                 </div>
+                                <div class="mc-motd" id="mc-motd">A Minecraft Server</div>
                             </div>
                         </div>
-                        <div class="mc-motd" id="mc-motd">A Minecraft Server</div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <p class="something">the rest of the website is still under construction...</p>
+                <!-- Guestbook Preview -->
+             <!--   <div class="guestbook-section" id="guestbook">
+                    <h3 class="guestbook-title">:) Sign My Guestbook! :)</h3>
+                    <p class="guestbook-link"><a href="/guestbook">View All Messages</a> or leave a message below!</p>
+
+                    <form class="guestbook-form" id="guestbook-form">
+                        <input type="text" id="guest-name" placeholder="Your Name" required maxlength="50">
+                        <textarea id="guest-message" placeholder="Your Message" required maxlength="500"></textarea>
+                        <button type="submit" class="btn">Sign Guestbook!</button>
+                    </form>
+ 
+
+                    <div class="guestbook-messages" id="guestbook-messages">
+                        <p class="loading">Loading messages...</p>
+                    </div>
+                </div> -->
+
+                <!-- im woking on it cuh -->
+
+                <div class="under-construction-banner">
+                    <div class="construction-stripes"></div>
+                    UNDER CONSTRUCTION
+                </div>
+
+                <p class="something">In the meantime, check out some<br><a href="/gallery">awesome photos</a> from the Discord!</p>
+            </div>
+        </main>
+
+        <!-- Right Side Column -->
+        <aside class="side-column right">
+            <div>                                                                                                            
+         <span class="sticker sticker-skater">BIG BELLY</span>                                                        
+                 <br><br>                                                                                                     
+            <span class="sticker sticker-fire">HOT STUFF</span>                                                          
+              <br><br>                                                                                                     
+              <span class="sticker sticker-music">SUPER</span>&nbsp;                                                       
+            <span class="sticker sticker-rock">GAMING</span>
+        </aside>
     </div>
+
+    <!-- Footer -->
+    <div class="site-footer">
+        <p id="footer-text">Enable JavaScript! ~ yoforduer.org ~ Est. 2026</p>
+    </div>
+
+    <script>
+        // Random footer messages
+        const footerMessages = [
+            "Holy vibecoded... ~ yoforduer.org ~ Est. 2026",
+            "#____LOUIE ~ yoforduer.org ~ Est. 2024",
+            "Um... something aint right! ~ yoforduer.org ~ Est. 2026",
+            "If one man could hold you down... ~ yoforduer.org ~ Est. 2026",
+            "let me get two sweet teas ~ yoforduer.org ~ Est. 2026",
+            "gulp ~ yoforduer.org ~ Est. 2026",
+            "hello! ~ yoforduer.org ~ Est. 2026",
+            "oh yeah ~ yoforduer.org ~ Est. 2026",
+            "55 burger 55 pies... ~ yoforduer.org ~ Est. 2026",
+        ];
+        document.getElementById('footer-text').textContent = footerMessages[Math.floor(Math.random() * footerMessages.length)];
+
+        // Typing effect for welcome text
+        const welcomeText = "Welcome to yoforduer.org!";
+        let charIndex = 0;
+        const typingElement = document.getElementById('typing-text');
+
+        function typeText() {
+            if (charIndex < welcomeText.length) {
+                typingElement.textContent += welcomeText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeText, 80);
+            }
+        }
+        setTimeout(typeText, 500);
+
+        // Retro clock
+        function updateClock() {
+            const clock = document.getElementById('retro-clock');
+            if (clock) {
+                const now = new Date();
+                clock.textContent = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Current date
+        function updateDate() {
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) {
+                const now = new Date();
+                dateEl.textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        }
+        updateDate();
+
+        // Fetch and display visits counter
+        async function fetchVisits() {
+            const hitCount = document.getElementById('hit-count');
+            if (!hitCount) return;
+            try {
+                await fetch('/api/visits', { method: 'POST' });
+                const response = await fetch('/api/visits');
+                const data = await response.json();
+                hitCount.textContent = String(data.count).padStart(6, '0');
+            } catch (error) {
+                hitCount.textContent = '000001';
+            }
+        }
+        fetchVisits();
+
+        // Guestbook functionality
+        async function loadGuestbook() {
+            const messagesDiv = document.getElementById('guestbook-messages');
+            if (!messagesDiv) return;
+
+            try {
+                const response = await fetch('/api/guestbook');
+                const messages = await response.json();
+
+                messagesDiv.innerHTML = '';
+
+                if (messages.length === 0) {
+                    const p = document.createElement('p');
+                    p.className = 'no-messages';
+                    p.textContent = 'No messages yet! Be the first!';
+                    messagesDiv.appendChild(p);
+                    return;
+                }
+
+                // Only show first 3 messages on homepage
+                messages.slice(0, 3).forEach(function(msg) {
+                    const entry = document.createElement('div');
+                    entry.className = 'guestbook-entry';
+
+                    const header = document.createElement('div');
+                    header.className = 'guestbook-header';
+
+                    const name = document.createElement('span');
+                    name.className = 'guestbook-name';
+                    name.textContent = msg.name;
+
+                    const date = document.createElement('span');
+                    date.className = 'guestbook-date';
+                    date.textContent = formatDate(msg.timestamp);
+
+                    header.appendChild(name);
+                    header.appendChild(date);
+
+                    const body = document.createElement('div');
+                    body.className = 'guestbook-body';
+                    body.textContent = msg.message;
+
+                    entry.appendChild(header);
+                    entry.appendChild(body);
+                    messagesDiv.appendChild(entry);
+                });
+            } catch (error) {
+                messagesDiv.innerHTML = '';
+                const p = document.createElement('p');
+                p.className = 'error';
+                p.textContent = 'Error loading guestbook!';
+                messagesDiv.appendChild(p);
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // Handle guestbook form submission
+        const guestbookForm = document.getElementById('guestbook-form');
+        if (guestbookForm) {
+            guestbookForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('guest-name');
+                const messageInput = document.getElementById('guest-message');
+                const button = guestbookForm.querySelector('button');
+
+                const originalText = button.textContent;
+                button.textContent = 'Sending...';
+                button.disabled = true;
+
+                try {
+                    const response = await fetch('/api/guestbook', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: nameInput.value,
+                            message: messageInput.value
+                        })
+                    });
+
+                    if (response.ok) {
+                        nameInput.value = '';
+                        messageInput.value = '';
+                        loadGuestbook();
+                    } else {
+                        alert('Error sending message!');
+                    }
+                } catch (error) {
+                    alert('Error sending message!');
+                }
+
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+
+        loadGuestbook();
+    </script>
 </body>
 </html>
