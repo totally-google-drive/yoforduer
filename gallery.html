@@ -6,6 +6,11 @@
     <title>Awesome Photos</title>
     <script src="js.js?v=11"></script>
     <link rel="stylesheet" href="index.css?v=11">
+     <script>
+        fetch('/api/random-emoji').then(r => r.json()).then(d => {
+            if (d.emoji) document.getElementById('favicon-link').href = d.emoji;
+        });
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-link">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
