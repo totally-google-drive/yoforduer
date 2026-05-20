@@ -156,6 +156,7 @@
             type = type || 'info';
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
+            toast.textContent = message;
             const styles = {
                 error: { bg: '#ff4444', text: '#fff', glow: '#ff444480' },
                 success: { bg: '#00aa00', text: '#fff', glow: '#00ff0060' },
