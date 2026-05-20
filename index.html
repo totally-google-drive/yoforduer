@@ -7,10 +7,11 @@
     <script src="js.js?v=11"></script>
     <script>
         fetch('/api/random-emoji').then(r => r.json()).then(d => {
-            if (d.emoji) document.getElementById('favicon-link').href = d.emoji;
-        });
+            var faviconEl = document.getElementById('favicon-link');
+            if (d.emoji && faviconEl) faviconEl.href = d.emoji;
+        }).catch(function() {});
     </script>
-    <link rel="stylesheet" href="index.css?v=16">
+    <link rel="stylesheet" href="index.css?v=17">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-link">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -93,7 +94,7 @@
                             <img class="mc-favicon" id="mc-favicon" src="pack.webp" alt="">
                             <div class="mc-server-name-row">
                                 <span class="mc-server-name" onclick="copyLink()" title="Click to copy IP">yoforduer.org</span>
-                                <span class="mc-player-count" id="mc-player-count">
+                                <span class="mc-player-count" id="mc-player-count" title="Loading...">
                                     <span id="mc-players">-</span>
                                 </span>
                             </div>
@@ -112,6 +113,7 @@
     <!-- Footer -->
     <div class="site-footer">
         <p id="footer-text">Enable JavaScript! ~ yoforduer.org ~ Est. 2026</p>
+        <p id="last-updated">Last updated: loading...</p>
     </div>
 
     <script>
@@ -128,6 +130,37 @@
             "55 burger 55 pies... ~ yoforduer.org ~ Est. 2026",
         ];
         document.getElementById('footer-text').textContent = footerMessages[Math.floor(Math.random() * footerMessages.length)];
+
+        // Last updated - calculate relative time since server start
+        async function updateLastUpdated() {
+            const lastUpdatedEl = document.getElementById('last-updated');
+            if (!lastUpdatedEl) return;
+            try {
+                const response = await fetch('/api/server-info');
+                const data = await response.json();
+                const startTime = new Date(data.startTime);
+                const now = new Date();
+                const diffMs = now - startTime;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+
+                let timeAgo;
+                if (diffMins < 1) {
+                    timeAgo = 'less than a minute ago, you\'re early!';
+                } else if (diffMins < 60) {
+                    timeAgo = diffMins + ' minute' + (diffMins === 1 ? '' : 's') + ' ago';
+                } else if (diffHours < 24) {
+                    timeAgo = diffHours + ' hour' + (diffHours === 1 ? '' : 's') + ' ago';
+                } else {
+                    timeAgo = diffDays + ' day' + (diffDays === 1 ? '' : 's') + ' ago';
+                }
+                lastUpdatedEl.textContent = 'Last updated: ' + timeAgo;
+            } catch (error) {
+                lastUpdatedEl.textContent = 'Last updated: unknown';
+            }
+        }
+        updateLastUpdated();
 
         // Typing effect for welcome text
         const welcomeText = "Welcome to yoforduer.org!";
@@ -158,20 +191,6 @@
         }
         updateClock();
         setInterval(updateClock, 1000);
-
-        // Current date
-        function updateDate() {
-            const dateEl = document.getElementById('current-date');
-            if (dateEl) {
-                const now = new Date();
-                dateEl.textContent = now.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric'
-                });
-            }
-        }
-        updateDate();
 
         // Fetch and display visits counter
         async function fetchVisits() {
@@ -292,53 +311,10 @@
             });
         }
 
-        loadGuestbook();
-
-        // Minecraft Server Status
-        async function loadMCStatus() {
-            const mcPlayers = document.getElementById('mc-players');
-            const mcPlayerCount = document.getElementById('mc-player-count');
-            const mcMotd = document.getElementById('mc-motd');
-            const mcFavicon = document.getElementById('mc-favicon');
-
-            if (!mcPlayers) return;
-
-            try {
-                const response = await fetch('/api/mc-status');
-                const data = await response.json();
-
-                if (data.online) {
-                    mcPlayers.textContent = data.players + '/' + data.maxPlayers;
-
-                    // Add hover tooltip with player names
-                    if (data.samplePlayers && data.samplePlayers.length > 0) {
-                        const playerNames = data.samplePlayers.map(p => p.name).join(', ');
-                        mcPlayerCount.title = 'Online: ' + playerNames;
-                    } else if (data.players > 0) {
-                        mcPlayerCount.title = data.players + ' player(s) online';
-                    } else {
-                        mcPlayerCount.title = 'No players online';
-                    }
-
-                    if (data.motd) {
-                        mcMotd.textContent = data.motd;
-                    }
-
-                    if (data.favicon) {
-                        mcFavicon.src = data.favicon;
-                    }
-                } else {
-                    mcPlayers.textContent = '0';
-                    mcPlayerCount.title = 'Server offline';
-                }
-            } catch (error) {
-                mcPlayers.textContent = '?';
-                mcPlayerCount.title = 'Could not connect';
-            }
+        // Only load guestbook if the element exists (not commented out)
+        if (document.getElementById('guestbook-messages')) {
+            loadGuestbook();
         }
-
-        loadMCStatus();
-        setInterval(loadMCStatus, 30000); // Update every 30 seconds
     </script>
 </body>
 </html>

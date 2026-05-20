@@ -7,16 +7,20 @@
     <script src="js.js?v=11"></script>
     <script>
         fetch('/api/random-emoji').then(r => r.json()).then(d => {
-            if (d.emoji) document.getElementById('favicon-link').href = d.emoji;
-        });
+            var faviconEl = document.getElementById('favicon-link');
+            if (d.emoji && faviconEl) faviconEl.href = d.emoji;
+        }).catch(function() {});
     </script>
-    <link rel="stylesheet" href="index.css?v=16">
+    <link rel="stylesheet" href="index.css?v=17">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-link">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cosette+Texte:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Toast notification container -->
+    <div id="toast-container" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;"></div>
+
     <div class="main-wrapper">
         <!-- Left Side Column -->
         <aside class="side-column left">
@@ -56,13 +60,31 @@
                 <div class="guestbook-section" id="guestbook">
                     <h3 class="guestbook-title">Sign the Guestbook!</h3>
                     <form class="guestbook-form" id="guestbook-form">
-                        <input type="text" id="guest-name" placeholder="Name" required maxlength="50">
-                        <textarea id="guest-message" placeholder="Message" required maxlength="500"></textarea>
+                        <label for="guest-name" class="visually-hidden">Your Name</label>
+                        <input type="text" id="guest-name" placeholder="Name" required maxlength="50" aria-describedby="guest-name-desc">
+                        <span id="guest-name-desc" class="visually-hidden">Enter your name, max 50 characters</span>
+                        <label for="guest-message" class="visually-hidden">Your Message</label>
+                        <textarea id="guest-message" placeholder="Message" required maxlength="500" aria-describedby="guest-message-desc"></textarea>
+                        <span id="guest-message-desc" class="visually-hidden">Enter your message, max 500 characters</span>
                         <button type="submit" class="btn">Post!</button>
                     </form>
 
+                    <!-- Search -->
+                    <div class="guestbook-search">
+                        <label for="guest-search" class="visually-hidden">Search messages</label>
+                        <input type="text" id="guest-search" placeholder="Search messages..." aria-label="Search messages">
+                        <button type="button" class="btn" id="search-btn">Search</button>
+                        <button type="button" class="btn btn-clear" id="clear-search-btn" style="display:none;">Clear</button>
+                    </div>
+                    <p class="search-results-info" id="search-results-info" style="display:none;"></p>
+                    <p class="guestbook-count" id="guestbook-count"></p>
+
                     <div class="guestbook-messages" id="guestbook-messages">
                         <p class="loading">Loading messages...</p>
+                    </div>
+
+                    <div class="guestbook-pagination" style="display: none;">
+                        <button type="button" class="btn" id="view-more-btn" style="display:none;">View More</button>
                     </div>
                 </div>
             </div>
@@ -128,59 +150,377 @@
         }
         fetchMsgCount();
 
-        // Guestbook functionality
-        async function loadGuestbook() {
+        // Toast notification function
+        function showToast(message, type) {
+            if (!message) return; // Don't show empty toasts
+            type = type || 'info';
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const styles = {
+                error: { bg: '#ff4444', text: '#fff', glow: '#ff444480' },
+                success: { bg: '#00aa00', text: '#fff', glow: '#00ff0060' },
+                info: { bg: '#ff69b4', text: '#000', glow: '#ff69b460' }
+            };
+            const s = styles[type];
+            toast.style.cssText = [
+                'background:' + s.bg + ';',
+                'color:' + s.text + ';',
+                'padding:12px 24px;',
+                'margin-bottom:10px;',
+                'font-family:"Courier New",monospace;',
+                'font-weight:bold;',
+                'font-size:14px;',
+                'box-shadow:0 0 20px ' + s.glow + ', 0 4px 12px rgba(0,0,0,0.5);',
+                'border:2px solid ' + (type === 'info' ? '#ff85c0' : s.bg) + ';',
+                'opacity:1;',
+                'transition:opacity 0.3s,transform 0.3s;',
+                'transform:translateX(0);',
+                'pointer-events:auto;',
+                'text-shadow:' + (type === 'info' ? 'none' : '0 0 10px ' + s.glow + ';')
+            ].join('');
+            container.appendChild(toast);
+            // Slide in animation
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.opacity = '0';
+            requestAnimationFrame(function() {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+            });
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 2000);
+        }
+
+        // Guestbook state
+        let currentPage = 1;
+        let hasMore = false;
+        let currentSearch = '';
+        let allMessages = [];
+        let messageReplies = {}; // Map of parentId -> array of replies
+
+        // Guestbook functionality with pagination and search
+        async function loadGuestbook(page, append) {
+            page = page || 1;
+            append = append || false;
             const messagesDiv = document.getElementById('guestbook-messages');
+            const viewMoreBtn = document.getElementById('view-more-btn');
+            const countEl = document.getElementById('guestbook-count');
             if (!messagesDiv) return;
 
-            try {
-                const response = await fetch('/api/guestbook');
-                const messages = await response.json();
-
+            if (!append) {
                 messagesDiv.innerHTML = '';
+                messagesDiv.appendChild(document.createElement('p')).className = 'loading';
+                messagesDiv.querySelector('.loading').textContent = 'Loading messages...';
+                currentPage = 1;
+                allMessages = [];
+                messageReplies = {};
+            }
 
-                if (messages.length === 0) {
+            try {
+                const searchParam = currentSearch ? '&search=' + encodeURIComponent(currentSearch) : '';
+                const response = await fetch('/api/guestbook?page=' + page + '&limit=10' + searchParam);
+                const data = await response.json();
+
+                const messages = data.messages;
+                currentPage = data.page;
+                hasMore = data.hasMore;
+
+                if (!append) {
+                    messagesDiv.innerHTML = '';
+                }
+
+                if (messages.length === 0 && !append) {
                     const p = document.createElement('p');
                     p.className = 'no-messages';
-                    p.textContent = 'No messages yet! Be the first!';
+                    p.textContent = currentSearch ? 'No messages found!' : 'No messages yet! Be the first!';
                     messagesDiv.appendChild(p);
+                    viewMoreBtn.style.display = 'none';
+                    countEl.textContent = currentSearch ? '' : '';
                     return;
                 }
 
-                // Show all messages on guestbook page
+                // Group replies by parentId
                 messages.forEach(function(msg) {
-                    const entry = document.createElement('div');
-                    entry.className = 'guestbook-entry';
+                    if (msg.parentId) {
+                        if (!messageReplies[msg.parentId]) {
+                            messageReplies[msg.parentId] = [];
+                        }
+                        messageReplies[msg.parentId].push(msg);
+                    }
+                });
 
-                    const header = document.createElement('div');
-                    header.className = 'guestbook-header';
-
-                    const name = document.createElement('span');
-                    name.className = 'guestbook-name';
-                    name.textContent = msg.name;
-
-                    const date = document.createElement('span');
-                    date.className = 'guestbook-date';
-                    date.textContent = formatDate(msg.timestamp);
-
-                    header.appendChild(name);
-                    header.appendChild(date);
-
-                    const body = document.createElement('div');
-                    body.className = 'guestbook-body';
-                    body.textContent = msg.message;
-
-                    entry.appendChild(header);
-                    entry.appendChild(body);
+                // Add only top-level messages to list
+                messages.filter(function(m) { return !m.parentId; }).forEach(function(msg) {
+                    allMessages.push(msg);
+                    const entry = createMessageElement(msg);
                     messagesDiv.appendChild(entry);
                 });
+
+                // Update count
+                if (currentSearch) {
+                    countEl.textContent = 'Showing ' + allMessages.length + ' of ' + data.total + ' results';
+                } else {
+                    countEl.textContent = 'Showing ' + allMessages.length + ' of ' + data.total + ' messages';
+                }
+
+                // Show/hide view more button
+                viewMoreBtn.style.display = hasMore ? 'inline-block' : 'none';
+
             } catch (error) {
-                messagesDiv.innerHTML = '';
-                const p = document.createElement('p');
-                p.className = 'error';
-                p.textContent = 'Error loading guestbook!';
-                messagesDiv.appendChild(p);
+                if (!append) {
+                    messagesDiv.innerHTML = '';
+                    const p = document.createElement('p');
+                    p.className = 'error';
+                    p.textContent = 'Error loading guestbook!';
+                    messagesDiv.appendChild(p);
+                }
             }
+        }
+
+        function createMessageElement(msg, isReply) {
+            const entry = document.createElement('div');
+            entry.className = 'guestbook-entry';
+            if (isReply) {
+                entry.classList.add('guestbook-entry-reply');
+            }
+
+            const header = document.createElement('div');
+            header.className = 'guestbook-header';
+
+            const name = document.createElement('span');
+            name.className = 'guestbook-name';
+            name.textContent = msg.name;
+
+            // Add "replying to X" if this is a reply
+            if (msg.parentId && msg.parentName) {
+                const replyTo = document.createElement('span');
+                replyTo.className = 'guestbook-reply-to';
+                replyTo.textContent = ' (replying to ' + msg.parentName + ')';
+                name.appendChild(replyTo);
+            }
+
+            const date = document.createElement('span');
+            date.className = 'guestbook-date';
+            date.textContent = formatDate(msg.timestamp);
+
+            header.appendChild(name);
+            header.appendChild(date);
+
+            const body = document.createElement('div');
+            body.className = 'guestbook-body';
+            body.textContent = msg.message;
+
+            entry.appendChild(header);
+            entry.appendChild(body);
+
+            // Add like button (for all messages)
+            var likeCount = msg.likes || 0;
+            var likeBtn = document.createElement('button');
+            likeBtn.className = 'guestbook-like-btn';
+            likeBtn.dataset.id = msg.id;
+            likeBtn.textContent = '❤ ' + likeCount;
+            if (msg.liked) {
+                likeBtn.classList.add('liked');
+            }
+            likeBtn.addEventListener('click', (function(id) {
+                return function() { toggleLike(id); };
+            })(msg.id));
+            entry.appendChild(likeBtn);
+
+            // Add reply button (only for top-level messages)
+            if (!msg.parentId) {
+                const replyBtn = document.createElement('button');
+                replyBtn.className = 'guestbook-reply-btn';
+                replyBtn.textContent = 'Reply';
+                replyBtn.dataset.id = msg.id;
+                replyBtn.dataset.name = msg.name;
+                replyBtn.addEventListener('click', function() {
+                    showReplyForm(msg.id, msg.name);
+                });
+                entry.appendChild(replyBtn);
+
+                // Add reply form (hidden by default)
+                const replyForm = document.createElement('div');
+                replyForm.className = 'reply-form';
+                replyForm.id = 'reply-form-' + msg.id;
+
+                // Replying to indicator
+                const replyToDiv = document.createElement('div');
+                replyToDiv.className = 'reply-to';
+                replyToDiv.id = 'reply-to-' + msg.id;
+                replyToDiv.textContent = 'Replying to ' + msg.name;
+                replyForm.appendChild(replyToDiv);
+
+                const replyNameInput = document.createElement('input');
+                replyNameInput.type = 'text';
+                replyNameInput.id = 'reply-name-' + msg.id;
+                replyNameInput.placeholder = 'Your name';
+                replyNameInput.required = true;
+                replyNameInput.maxLength = 50;
+
+                const replyMessageInput = document.createElement('textarea');
+                replyMessageInput.id = 'reply-message-' + msg.id;
+                replyMessageInput.placeholder = 'Your reply';
+                replyMessageInput.required = true;
+                replyMessageInput.maxLength = 500;
+
+                const postBtn = document.createElement('button');
+                postBtn.type = 'button';
+                postBtn.className = 'btn';
+                postBtn.textContent = 'Post Reply';
+                postBtn.onclick = (function(id) {
+                    return function() { submitReply(id); };
+                })(msg.id);
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.type = 'button';
+                cancelBtn.className = 'btn btn-clear';
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.style.marginLeft = '5px';
+                cancelBtn.onclick = (function(id) {
+                    return function() { hideReplyForm(id); };
+                })(msg.id);
+
+                replyForm.appendChild(replyNameInput);
+                replyForm.appendChild(replyMessageInput);
+                replyForm.appendChild(postBtn);
+                replyForm.appendChild(cancelBtn);
+                entry.appendChild(replyForm);
+
+                // Add collapsible replies section
+                const replies = messageReplies[msg.id] || [];
+                if (replies.length > 0) {
+                    const repliesToggle = document.createElement('button');
+                    repliesToggle.className = 'guestbook-replies-toggle';
+                    repliesToggle.dataset.id = msg.id;
+                    repliesToggle.textContent = 'click to see ' + replies.length + ' repl' + (replies.length === 1 ? 'y' : 'ies');
+                    repliesToggle.addEventListener('click', function() {
+                        toggleReplies(msg.id);
+                    });
+                    entry.appendChild(repliesToggle);
+
+                    const repliesContainer = document.createElement('div');
+                    repliesContainer.className = 'guestbook-replies-container';
+                    repliesContainer.id = 'replies-' + msg.id;
+                    // Add replies (initially hidden via CSS)
+                    replies.forEach(function(reply) {
+                        const replyEl = createMessageElement(reply, true);
+                        repliesContainer.appendChild(replyEl);
+                    });
+                    entry.appendChild(repliesContainer);
+                }
+            }
+
+            return entry;
+        }
+
+        function toggleReplies(msgId) {
+            const container = document.getElementById('replies-' + msgId);
+            const toggle = document.querySelector('.guestbook-replies-toggle[data-id="' + msgId + '"]');
+            if (container) {
+                if (container.style.display === 'none' || !container.style.display) {
+                    container.style.display = 'block';
+                    if (toggle) toggle.textContent = 'hide replies';
+                } else {
+                    container.style.display = 'none';
+                    const replies = messageReplies[msgId] || [];
+                    toggle.textContent = 'click to see ' + replies.length + ' repl' + (replies.length === 1 ? 'y' : 'ies');
+                }
+            }
+        }
+
+        function showReplyForm(msgId, replyToName) {
+            // Hide all other reply forms
+            document.querySelectorAll('.reply-form.active').forEach(function(form) {
+                form.classList.remove('active');
+            });
+            // Show this one
+            const form = document.getElementById('reply-form-' + msgId);
+            if (form) {
+                form.classList.add('active');
+                // Update the "replying to" text
+                const replyToDiv = document.getElementById('reply-to-' + msgId);
+                if (replyToDiv) {
+                    replyToDiv.textContent = 'Replying to ' + replyToName;
+                }
+            }
+        }
+
+        function hideReplyForm(msgId) {
+            const form = document.getElementById('reply-form-' + msgId);
+            if (form) {
+                form.classList.remove('active');
+            }
+        }
+
+        function submitReply(parentId) {
+            var nameInput = document.getElementById('reply-name-' + parentId);
+            var messageInput = document.getElementById('reply-message-' + parentId);
+
+            if (!nameInput.value.trim() || !messageInput.value.trim()) {
+                showToast('Please fill in both fields!', 'error');
+                return;
+            }
+
+            fetch('/api/guestbook/' + parentId + '/reply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: nameInput.value,
+                    message: messageInput.value
+                })
+            }).then(function(response) {
+                return response.json().then(function(data) {
+                    if (response.ok) {
+                        hideReplyForm(parentId);
+                        nameInput.value = '';
+                        messageInput.value = '';
+                        loadGuestbook(1); // Reload from page 1
+                        showToast('Reply posted!', 'success');
+                    } else {
+                        showToast(data.error || 'Error sending reply!', 'error');
+                    }
+                });
+            }).catch(function() {
+                showToast('Error sending reply!', 'error');
+            });
+        }
+
+        // Generate a session ID for this browser (persistent across page loads)
+        var sessionId = localStorage.getItem('guestbook_session') || ('session-' + Math.random().toString(36).substr(2, 9));
+        if (!localStorage.getItem('guestbook_session')) {
+            localStorage.setItem('guestbook_session', sessionId);
+        }
+
+        function toggleLike(messageId) {
+            fetch('/api/guestbook/' + messageId + '/like', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Id': sessionId
+                }
+            }).then(function(response) {
+                return response.json();
+            }).then(function(data) {
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+                // Update the button
+                var likeBtn = document.querySelector('.guestbook-like-btn[data-id="' + messageId + '"]');
+                if (likeBtn) {
+                    likeBtn.textContent = '❤ ' + data.likes;
+                    if (data.liked) {
+                        likeBtn.classList.add('liked');
+                    } else {
+                        likeBtn.classList.remove('liked');
+                    }
+                }
+            }).catch(function() {
+                showToast('Error liking message!', 'error');
+            });
         }
 
         function formatDate(timestamp) {
@@ -219,12 +559,12 @@
                     if (response.ok) {
                         nameInput.value = '';
                         messageInput.value = '';
-                        loadGuestbook();
+                        loadGuestbook(1);
                     } else {
-                        alert('Error sending message!');
+                        showToast('Error sending message!', 'error');
                     }
                 } catch (error) {
-                    alert('Error sending message!');
+                    showToast('Error sending message!', 'error');
                 }
 
                 button.textContent = originalText;
@@ -232,53 +572,52 @@
             });
         }
 
-        loadGuestbook();
+        // Search functionality
+        var searchInput = document.getElementById('guest-search');
+        var searchBtn = document.getElementById('search-btn');
+        var clearSearchBtn = document.getElementById('clear-search-btn');
+        var searchResultsInfo = document.getElementById('search-results-info');
 
-        // Minecraft Server Status
-        async function loadMCStatus() {
-            const mcPlayers = document.getElementById('mc-players');
-            const mcPlayerCount = document.getElementById('mc-player-count');
-            const mcMotd = document.getElementById('mc-motd');
-            const mcFavicon = document.getElementById('mc-favicon');
-
-            if (!mcPlayers) return;
-
-            try {
-                const response = await fetch('/api/mc-status');
-                const data = await response.json();
-
-                if (data.online) {
-                    mcPlayers.textContent = data.players + '/' + data.maxPlayers;
-
-                    // Add hover tooltip with player names
-                    if (data.samplePlayers && data.samplePlayers.length > 0) {
-                        const playerNames = data.samplePlayers.map(p => p.name).join(', ');
-                        mcPlayerCount.title = 'Online: ' + playerNames;
-                    } else if (data.players > 0) {
-                        mcPlayerCount.title = data.players + ' player(s) online';
-                    } else {
-                        mcPlayerCount.title = 'No players online';
-                    }
-
-                    if (data.motd) {
-                        mcMotd.textContent = data.motd;
-                    }
-
-                    if (data.favicon) {
-                        mcFavicon.src = data.favicon;
-                    }
-                } else {
-                    mcPlayers.textContent = '0';
-                    mcPlayerCount.title = 'Server offline';
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function() {
+                currentSearch = searchInput.value.trim();
+                loadGuestbook(1);
+                if (clearSearchBtn) {
+                    clearSearchBtn.style.display = currentSearch ? 'inline-block' : 'none';
                 }
-            } catch (error) {
-                mcPlayers.textContent = '?';
-                mcPlayerCount.title = 'Could not connect';
-            }
+            });
         }
 
-        loadMCStatus();
-        setInterval(loadMCStatus, 30000); // Update every 30 seconds
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    currentSearch = searchInput.value.trim();
+                    loadGuestbook(1);
+                    if (clearSearchBtn) {
+                        clearSearchBtn.style.display = currentSearch ? 'inline-block' : 'none';
+                    }
+                }
+            });
+        }
+
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                currentSearch = '';
+                clearSearchBtn.style.display = 'none';
+                loadGuestbook(1);
+            });
+        }
+
+        // View More button
+        var viewMoreBtn = document.getElementById('view-more-btn');
+        if (viewMoreBtn) {
+            viewMoreBtn.addEventListener('click', function() {
+                loadGuestbook(currentPage + 1, true);
+            });
+        }
+
+        loadGuestbook(1);
     </script>
 </body>
 </html>

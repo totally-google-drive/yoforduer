@@ -10,36 +10,32 @@ function escapeHtml(str) {
 }
 
 function copyLink() {
-    var dummy = document.createElement('input'),
-    text = "yoforduer.org";
-
-    document.body.appendChild(dummy);
-    dummy.value = text;
-    dummy.select();
-    document.execCommand('copy');
-    document.body.removeChild(dummy);
-
-    var nameEl = document.querySelector('.mc-server-name');
-    if (nameEl) {
-        var originalText = nameEl.textContent;
-        nameEl.textContent = "Copied!";
-        nameEl.style.color = "#55aa55";
-        setTimeout(function() {
-            nameEl.textContent = originalText;
-            nameEl.style.color = "#00aa00";
-        }, 1500);
-    }
+    navigator.clipboard.writeText("yoforduer.org").then(function() {
+        var nameEl = document.querySelector('.mc-server-name');
+        if (nameEl) {
+            var originalText = nameEl.textContent;
+            nameEl.textContent = "Copied!";
+            nameEl.style.color = "#55aa55";
+            setTimeout(function() {
+                nameEl.textContent = originalText;
+                nameEl.style.color = "#55ff55";
+            }, 1500);
+        }
+    }).catch(function() {
+        // Silently fail - clipboard API may be blocked
+    });
 }
 
 async function fetchMCStatus() {
     try {
         const response = await fetch('/api/mc-status');
+        if (!response.ok) throw new Error('HTTP ' + response.status);
         const data = await response.json();
 
         const playersText = document.getElementById('mc-players');
         const motdText = document.getElementById('mc-motd');
         const faviconImg = document.getElementById('mc-favicon');
-        const playerTooltipList = document.getElementById('player-tooltip-list');
+        const playerCountEl = document.getElementById('mc-player-count');
 
         if (data.online) {
             if (playersText) {
@@ -51,13 +47,16 @@ async function fetchMCStatus() {
             if (faviconImg && data.favicon) {
                 faviconImg.src = data.favicon;
             }
-            if (playerTooltipList) {
+            if (playerCountEl) {
                 if (data.samplePlayers && data.samplePlayers.length > 0) {
-                    playerTooltipList.innerHTML = data.samplePlayers.map(function(p) {
-                        return '<div class="mc-tooltip-player">' + escapeHtml(p.name || 'Unknown') + '</div>';
-                    }).join('');
+                    const playerNames = data.samplePlayers.map(function(p) {
+                        return escapeHtml(p.name || 'Unknown');
+                    }).join(', ');
+                    playerCountEl.title = 'Online: ' + playerNames;
+                } else if (data.players > 0) {
+                    playerCountEl.title = data.players + ' player(s) online';
                 } else {
-                    playerTooltipList.innerHTML = '<div class="mc-tooltip-empty">No players online</div>';
+                    playerCountEl.title = 'No players online';
                 }
             }
         } else {
@@ -67,8 +66,8 @@ async function fetchMCStatus() {
             if (motdText) {
                 motdText.textContent = 'Server offline';
             }
-            if (playerTooltipList) {
-                playerTooltipList.innerHTML = '<div class="mc-tooltip-empty">Server offline</div>';
+            if (playerCountEl) {
+                playerCountEl.title = 'Server offline';
             }
         }
     } catch (error) {
@@ -94,4 +93,14 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDate();
     fetchMCStatus();
     setInterval(fetchMCStatus, 30000);
+
+    // Keyboard support for lightbox (Escape to close)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var lightbox = document.getElementById('lightbox');
+            if (lightbox && lightbox.classList.contains('active')) {
+                lightbox.classList.remove('active');
+            }
+        }
+    });
 });

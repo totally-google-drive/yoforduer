@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Awesome Photos</title>
     <script src="js.js?v=11"></script>
-    <link rel="stylesheet" href="index.css?v=11">
+    <link rel="stylesheet" href="index.css?v=17">
      <script>
         fetch('/api/random-emoji').then(r => r.json()).then(d => {
-            if (d.emoji) document.getElementById('favicon-link').href = d.emoji;
-        });
+            var faviconEl = document.getElementById('favicon-link');
+            if (d.emoji && faviconEl) faviconEl.href = d.emoji;
+        }).catch(function() {});
     </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" id="favicon-link">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,8 +69,8 @@
     </div>
 
     <!-- Lightbox -->
-    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-        <span class="lightbox-close">&times;</span>
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()" role="dialog" aria-label="Photo lightbox">
+        <span class="lightbox-close" role="button" tabindex="-1" aria-label="Close lightbox">&times;</span>
         <img id="lightbox-img" src="" alt="">
     </div>
 
@@ -170,10 +171,6 @@
         function closeLightbox() {
             document.getElementById('lightbox').classList.remove('active');
         }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeLightbox();
-        });
 
         loadPhotos();
     </script>
