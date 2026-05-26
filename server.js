@@ -329,7 +329,7 @@ app.get('/api/mc-status', async (req, res) => {
       players: result.players.online,
       maxPlayers: result.players.max,
       ping: result.roundTripLatency || 0,
-      motd: result.motd?.clean || 'A Minecraft Server',
+      motd: result.motd?.html || 'A Minecraft Server',
       favicon: result.favicon || null,
       samplePlayers: result.players.sample || []
     });

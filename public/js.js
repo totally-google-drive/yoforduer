@@ -42,7 +42,7 @@ async function fetchMCStatus() {
                 playersText.textContent = data.players + '/' + data.maxPlayers;
             }
             if (motdText) {
-                motdText.textContent = data.motd || 'A Minecraft Server';
+                motdText.innerHTML = data.motd || 'A Minecraft Server';
             }
             if (faviconImg && data.favicon) {
                 faviconImg.src = data.favicon;
