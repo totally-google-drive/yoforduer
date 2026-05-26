@@ -23,5 +23,4 @@ npm-debug.log*
 *.temp
 
 # DB files
-data/guestbook.json
-data/visits.json
+data/
